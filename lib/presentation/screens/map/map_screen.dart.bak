@@ -1,0 +1,283 @@
+import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import '../../../core/constants/app_constants.dart';
+import '../../../core/theme/app_theme.dart';
+import '../../../services/location_service.dart';
+import '../../providers/location_provider.dart';
+import '../../providers/shop_provider.dart';
+import '../../widgets/shop_card.dart';
+import '../../widgets/search_bar_widget.dart';
+
+class MapScreen extends ConsumerStatefulWidget {
+  const MapScreen({super.key});
+
+  @override
+  ConsumerState<MapScreen> createState() => _MapScreenState();
+}
+
+class _MapScreenState extends ConsumerState<MapScreen> {
+  GoogleMapController? _mapController;
+  final Set<Marker> _markers = {};
+  String? _selectedShopId;
+
+  @override
+  void dispose() {
+    _mapController?.dispose();
+    super.dispose();
+  }
+
+  void _onMapCreated(GoogleMapController controller) {
+    _mapController = controller;
+    _updateMarkers();
+  }
+
+  void _updateMarkers() {
+    final shopsAsync = ref.read(nearbyShopsProvider);
+
+    shopsAsync.whenData((shops) {
+      final newMarkers = shops.map((shop) {
+        return Marker(
+          markerId: MarkerId(shop.id),
+          position: LatLng(shop.latitude, shop.longitude),
+          infoWindow: InfoWindow(
+            title: shop.name,
+            snippet: LocationService.formatDistance(shop.distanceMeters),
+            onTap: () => context.push('/shop/${shop.id}'),
+          ),
+          icon: BitmapDescriptor.defaultMarkerWithHue(
+            BitmapDescriptor.hueRose,
+          ),
+          onTap: () {
+            setState(() => _selectedShopId = shop.id);
+          },
+        );
+      }).toSet();
+
+      setState(() {
+        _markers.clear();
+        _markers.addAll(newMarkers);
+      });
+    });
+  }
+
+  Future<void> _moveToCurrentLocation() async {
+    final location = ref.read(currentLocationProvider).valueOrNull;
+    if (location != null && _mapController != null) {
+      await _mapController!.animateCamera(
+        CameraUpdate.newLatLng(
+          LatLng(location.latitude, location.longitude),
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final locationAsync = ref.watch(currentLocationProvider);
+    final shopsAsync = ref.watch(nearbyShopsProvider);
+
+    // Update markers when shops change
+    ref.listen(nearbyShopsProvider, (_, __) => _updateMarkers());
+
+    return Scaffold(
+      body: Stack(
+        children: [
+          // Google Map
+          locationAsync.when(
+            data: (location) => GoogleMap(
+              onMapCreated: _onMapCreated,
+              initialCameraPosition: CameraPosition(
+                target: LatLng(location.latitude, location.longitude),
+                zoom: AppConstants.defaultMapZoom,
+              ),
+              markers: _markers,
+              myLocationEnabled: true,
+              myLocationButtonEnabled: false,
+              zoomControlsEnabled: false,
+              mapToolbarEnabled: false,
+              onTap: (_) => setState(() => _selectedShopId = null),
+            ),
+            loading: () => const Center(
+              child: CircularProgressIndicator(),
+            ),
+            error: (e, _) => Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.location_off,
+                    size: 64,
+                    color: AppColors.textSecondary,
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  Text(
+                    '위치를 가져올 수 없습니다',
+                    style: AppTextStyles.bodyLarge,
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  ElevatedButton(
+                    onPressed: () {
+                      ref.read(currentLocationProvider.notifier).refreshLocation();
+                    },
+                    child: const Text('다시 시도'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // Search bar at top
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: SearchBarWidget(
+                onTap: () => context.push('/search'),
+              ),
+            ),
+          ),
+
+          // Filter chips
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 70,
+            left: 0,
+            right: 0,
+            child: const _FilterChips(),
+          ),
+
+          // My location button
+          Positioned(
+            right: AppSpacing.md,
+            bottom: _selectedShopId != null ? 200 : 100,
+            child: FloatingActionButton.small(
+              heroTag: 'myLocation',
+              onPressed: _moveToCurrentLocation,
+              backgroundColor: AppColors.surface,
+              child: const Icon(
+                Icons.my_location,
+                color: AppColors.primary,
+              ),
+            ),
+          ),
+
+          // Selected shop card at bottom
+          if (_selectedShopId != null)
+            Positioned(
+              left: AppSpacing.md,
+              right: AppSpacing.md,
+              bottom: AppSpacing.lg,
+              child: shopsAsync.maybeWhen(
+                data: (shops) {
+                  final shop = shops.firstWhere(
+                    (s) => s.id == _selectedShopId,
+                    orElse: () => shops.first,
+                  );
+                  return ShopCard(
+                    shop: shop,
+                    onTap: () => context.push('/shop/${shop.id}'),
+                  );
+                },
+                orElse: () => const SizedBox.shrink(),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FilterChips extends ConsumerWidget {
+  const _FilterChips();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final filters = ref.watch(searchFiltersProvider);
+    final categoriesAsync = ref.watch(categoriesProvider);
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+      child: Row(
+        children: [
+          // Distance filter
+          FilterChip(
+            label: Text(_formatRadius(filters.radiusMeters)),
+            selected: filters.radiusMeters != 5000,
+            onSelected: (_) => _showRadiusSelector(context, ref),
+            avatar: const Icon(Icons.near_me, size: 18),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+
+          // Category filters
+          categoriesAsync.maybeWhen(
+            data: (categories) => Row(
+              children: categories.map((category) {
+                final isSelected = filters.categoryId == category.id;
+                return Padding(
+                  padding: const EdgeInsets.only(right: AppSpacing.sm),
+                  child: FilterChip(
+                    label: Text(category.nameKo),
+                    selected: isSelected,
+                    onSelected: (_) {
+                      ref.read(searchFiltersProvider.notifier).updateCategory(
+                            isSelected ? null : category.id,
+                          );
+                    },
+                  ),
+                );
+              }).toList(),
+            ),
+            orElse: () => const SizedBox.shrink(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatRadius(int meters) {
+    if (meters < 1000) {
+      return '${meters}m';
+    }
+    return '${meters ~/ 1000}km';
+  }
+
+  void _showRadiusSelector(BuildContext context, WidgetRef ref) {
+    final radiusOptions = [500, 1000, 2000, 5000, 10000, 20000];
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            child: Text(
+              '검색 반경',
+              style: AppTextStyles.heading3,
+            ),
+          ),
+          ...radiusOptions.map((radius) {
+            final currentRadius = ref.read(searchFiltersProvider).radiusMeters;
+            return ListTile(
+              title: Text(_formatRadius(radius)),
+              trailing: currentRadius == radius
+                  ? const Icon(Icons.check, color: AppColors.primary)
+                  : null,
+              onTap: () {
+                ref.read(searchFiltersProvider.notifier).updateRadius(radius);
+                Navigator.pop(context);
+              },
+            );
+          }),
+          const SizedBox(height: AppSpacing.md),
+        ],
+      ),
+    );
+  }
+}

@@ -1,0 +1,268 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../../../core/theme/app_theme.dart';
+import '../../../data/models/models.dart';
+import '../../../data/mock/mock_data.dart';
+import '../../providers/location_provider.dart';
+import '../../providers/cart_provider.dart';
+import '../../widgets/shop_card.dart';
+
+/// 네이버 지도 화면
+/// TODO: flutter_naver_map 패키지 설정 후 실제 지도 구현
+class NaverMapScreen extends ConsumerStatefulWidget {
+  const NaverMapScreen({super.key});
+
+  @override
+  ConsumerState<NaverMapScreen> createState() => _NaverMapScreenState();
+}
+
+class _NaverMapScreenState extends ConsumerState<NaverMapScreen> {
+  FlowerShopModel? _selectedShop;
+  final List<FlowerShopModel> _shops = MockData.shops;
+
+  @override
+  Widget build(BuildContext context) {
+    final cartCount = ref.watch(cartItemCountProvider);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('내 주변'),
+        actions: [
+          // 장바구니 버튼
+          Badge(
+            isLabelVisible: cartCount > 0,
+            label: Text('$cartCount'),
+            child: IconButton(
+              icon: const Icon(Icons.shopping_bag_outlined),
+              onPressed: () => context.push('/cart'),
+            ),
+          ),
+        ],
+      ),
+      body: Stack(
+        children: [
+          // 지도 영역 (플레이스홀더)
+          _buildMapPlaceholder(),
+
+          // 필터 칩
+          Positioned(
+            top: AppSpacing.md,
+            left: 0,
+            right: 0,
+            child: _buildFilterChips(),
+          ),
+
+          // 내 위치 버튼
+          Positioned(
+            right: AppSpacing.md,
+            bottom: _selectedShop != null ? 200 : AppSpacing.lg,
+            child: FloatingActionButton.small(
+              heroTag: 'myLocation',
+              onPressed: _goToMyLocation,
+              backgroundColor: AppColors.surface,
+              child: const Icon(Icons.my_location, color: AppColors.primary),
+            ),
+          ),
+
+          // 선택된 가게 카드
+          if (_selectedShop != null)
+            Positioned(
+              left: AppSpacing.md,
+              right: AppSpacing.md,
+              bottom: AppSpacing.lg,
+              child: _buildSelectedShopCard(),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMapPlaceholder() {
+    return Container(
+      color: AppColors.background,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.map_outlined,
+              size: 80,
+              color: AppColors.textHint,
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              '네이버 지도',
+              style: AppTextStyles.heading3.copyWith(
+                color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              'API 키 설정 후 지도가 표시됩니다',
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: AppColors.textHint,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            // 임시: 가게 목록 버튼
+            Wrap(
+              spacing: AppSpacing.sm,
+              children: _shops.take(4).map((shop) {
+                return ActionChip(
+                  avatar: const Icon(Icons.location_on, size: 18),
+                  label: Text(shop.name),
+                  onPressed: () => _selectShop(shop),
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFilterChips() {
+    return Container(
+      height: 40,
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        children: [
+          _DistanceChip(label: '500m', isSelected: false, onTap: () {}),
+          const SizedBox(width: AppSpacing.sm),
+          _DistanceChip(label: '1km', isSelected: true, onTap: () {}),
+          const SizedBox(width: AppSpacing.sm),
+          _DistanceChip(label: '3km', isSelected: false, onTap: () {}),
+          const SizedBox(width: AppSpacing.sm),
+          _DistanceChip(label: '5km', isSelected: false, onTap: () {}),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSelectedShopCard() {
+    return GestureDetector(
+      onTap: () => context.push('/shop/${_selectedShop!.id}'),
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Row(
+            children: [
+              // 가게 이미지
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  width: 80,
+                  height: 80,
+                  color: AppColors.primaryLight,
+                  child: _selectedShop!.primaryPhotoUrl != null
+                      ? Image.network(
+                          _selectedShop!.primaryPhotoUrl!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => const Icon(
+                            Icons.local_florist,
+                            color: AppColors.primary,
+                          ),
+                        )
+                      : const Icon(
+                          Icons.local_florist,
+                          color: AppColors.primary,
+                        ),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              // 가게 정보
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            _selectedShop!.name,
+                            style: AppTextStyles.heading3,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (_selectedShop!.isVerified)
+                          const Icon(
+                            Icons.verified,
+                            size: 18,
+                            color: AppColors.verified,
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    Row(
+                      children: [
+                        const Icon(Icons.star, size: 16, color: AppColors.star),
+                        const SizedBox(width: 2),
+                        Text(
+                          _selectedShop!.averageRating.toStringAsFixed(1),
+                          style: AppTextStyles.bodyMedium,
+                        ),
+                        Text(
+                          ' (${_selectedShop!.reviewCount})',
+                          style: AppTextStyles.bodySmall,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      _selectedShop!.address,
+                      style: AppTextStyles.bodySmall,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              // 닫기 버튼
+              IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => setState(() => _selectedShop = null),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _selectShop(FlowerShopModel shop) {
+    setState(() => _selectedShop = shop);
+  }
+
+  void _goToMyLocation() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('내 위치로 이동합니다')),
+    );
+  }
+}
+
+class _DistanceChip extends StatelessWidget {
+  const _DistanceChip({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return FilterChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (_) => onTap(),
+      selectedColor: AppColors.primaryLight,
+      backgroundColor: AppColors.surface,
+    );
+  }
+}
