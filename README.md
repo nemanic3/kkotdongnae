@@ -1,11 +1,4 @@
 # 🌸 꽃동네 (Flower Neighborhood)
-
-![GitHub repo size](https://img.shields.io/github/repo-size/your-repo/flower-neighborhood)
-![GitHub stars](https://img.shields.io/github/stars/your-repo/flower-neighborhood?style=social)
-![GitHub license](https://img.shields.io/github/license/your-repo/flower-neighborhood)
-![Platform](https://img.shields.io/badge/platform-mobile-blue)
-![Tech](https://img.shields.io/badge/stack-Django%20%7C%20Flutter-green)
-
 > 우리 동네 꽃집을 가장 쉽고 빠르게 찾고, 비교하고, 주문하는 방법
 
 꽃동네는 **위치 기반 서비스(Location-Based Service)** 를 활용하여  
@@ -129,6 +122,10 @@ External Services
  ├─ Map API (GIS)
  ├─ Payment API
  └─ Generative AI
+```
+
+---
+
 ## 🛠 Tech Stack
 
 ### Frontend
@@ -170,20 +167,41 @@ flower-neighborhood
 ├── docs
 │
 └── README.md
-⚙️ Getting Started
-1. Clone
+```
+
+---
+
+## ⚙️ Getting Started
+
+### 1. Clone
+```bash
 git clone https://github.com/your-repo/flower-neighborhood.git
 cd flower-neighborhood
-2. Backend 실행
+```
+
+### 2. Backend 실행
+```bash
 cd backend
 pip install -r requirements.txt
 python manage.py runserver
-3. Frontend 실행
+```
+
+### 3. Frontend 실행
+```bash
 cd frontend
 npm install
 npm start
-🔗 API Example
+```
+
+---
+
+## 🔗 API Example
+
+```http
 GET /api/shops/nearby?lat=37.55&lng=126.92
+```
+
+```json
 [
   {
     "name": "홍대 꽃집",
@@ -191,39 +209,61 @@ GET /api/shops/nearby?lat=37.55&lng=126.92
     "available": true
   }
 ]
-📅 개발 로드맵
-1️⃣ 설계 (3~4월)
-요구사항 정의
-아키텍처 설계
-2️⃣ 핵심 개발 (5~8월)
-인증
-탐색 기능
-주문 시스템
-3️⃣ 고도화 (9~10월)
-결제
-AI 기능
-4️⃣ 마무리 (11월)
-테스트
-배포
-👥 Team
-이름	역할
-김건호	Team Leader
-신성현	Backend Developer
-정희원	Developer
-🎯 기대 효과
-LBS 서비스 구현 경험
-REST API 설계
-DB 모델링
-AI 서비스 적용
+```
 
-👉 로컬 화훼 시장 디지털 전환 기여
+---
 
-📌 Future Work
-추천 시스템 고도화
-리뷰 및 평점 기능
-정기 구독 서비스
-관리자 대시보드
+## 📅 개발 로드맵
 
-💡 Vision
+### 1️⃣ 설계 (3~4월)
+- 요구사항 정의
+- 아키텍처 설계
 
-Flower Neighborhood — Connecting local flower shops with customers
+### 2️⃣ 핵심 개발 (5~8월)
+- 인증
+- 탐색 기능
+- 주문 시스템
+
+### 3️⃣ 고도화 (9~10월)
+- 결제
+- AI 기능
+
+### 4️⃣ 마무리 (11월)
+- 테스트
+- 배포
+
+---
+
+## 👥 Team
+
+| 이름 | 역할 |
+|---|---|
+| 김건호 | Team Leader |
+| 신성현 | Backend Developer |
+| 정희원 | Developer |
+
+---
+
+## 🎯 기대 효과
+
+- LBS 서비스 구현 경험
+- REST API 설계
+- DB 모델링
+- AI 서비스 적용
+
+👉 **로컬 화훼 시장 디지털 전환 기여**
+
+---
+
+## 📌 Future Work
+
+- 추천 시스템 고도화
+- 리뷰 및 평점 기능
+- 정기 구독 서비스
+- 관리자 대시보드
+
+---
+
+## 💡 Vision
+
+> Flower Neighborhood — Connecting local flower shops with customers
