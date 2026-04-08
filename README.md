@@ -12,8 +12,6 @@
 
 ## 📸 Demo
 
-> (여기에 앱 화면 이미지 또는 GIF 추가)
-
 <p align="center">
   <img src="./docs/logo.png" width="250"/>
 </p>
