@@ -129,21 +129,31 @@ External Services
  ├─ Map API (GIS)
  ├─ Payment API
  └─ Generative AI
-🛠 Tech Stack
-Frontend
-Flutter / React Native
-Backend
-Django (Python)
-RESTful API
-Database
-PostgreSQL + PostGIS
-AI
-Generative AI (Image)
-DevOps
-Docker
-GitHub Actions (CI/CD)
-Cloud Server
-📂 Project Structure
+## 🛠 Tech Stack
+
+### Frontend
+- Flutter / React Native
+
+### Backend
+- Django (Python)
+- RESTful API
+
+### Database
+- PostgreSQL + PostGIS
+
+### AI
+- Generative AI (Image)
+
+### DevOps
+- Docker
+- GitHub Actions (CI/CD)
+- Cloud Server
+
+---
+
+## 📂 Project Structure
+
+```text
 flower-neighborhood
 │
 ├── backend
@@ -213,9 +223,6 @@ AI 서비스 적용
 리뷰 및 평점 기능
 정기 구독 서비스
 관리자 대시보드
-📄 License
-
-MIT License
 
 💡 Vision
 
