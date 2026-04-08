@@ -13,7 +13,7 @@
 ## 📸 Demo
 
 <p align="center">
-  <img src="./docs/logo.png" width="250"/>
+  <img src="./docs/KakaoTalk_20260326_114344899.png" width="250"/>
 </p>
 
 ---
