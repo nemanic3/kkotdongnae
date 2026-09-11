@@ -1,8 +1,11 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://13.239.85.58:8000/api';
+  static const String baseUrl = kReleaseMode
+      ? 'http://13.239.85.58:8000/api'
+      : 'http://127.0.0.1:8000/api';
   static String? _accessToken;
 
   static void setToken(String token) {
