@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/constants/app_constants.dart';
 import '../../../data/mock/mock_data.dart';
-import '../../providers/auth_provider.dart';
+import '../../../services/api_service.dart';
 import '../../providers/cart_provider.dart';
 
 /// 마이페이지 화면
@@ -139,6 +140,13 @@ class MyPageScreen extends ConsumerWidget {
         ),
         const Divider(height: 1),
         _MenuItem(
+          icon: Icons.cloud_sync_outlined,
+          title: '백엔드 서버 연결 테스트',
+          subtitle: 'GET /api/shops/ (HTTP 200 확인)',
+          onTap: () => _showBackendTestDialog(context),
+        ),
+        const Divider(height: 1),
+        _MenuItem(
           icon: Icons.help_outline,
           title: '고객센터',
           onTap: () {
@@ -218,6 +226,150 @@ class MyPageScreen extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+
+  void _showBackendTestDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogCtx) {
+        ConnectionTestResult? result;
+        bool isLoading = true;
+
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            void runTest() async {
+              setDialogState(() => isLoading = true);
+              final res = await ApiService.testShopsConnection();
+              if (dialogCtx.mounted) {
+                setDialogState(() {
+                  result = res;
+                  isLoading = false;
+                });
+              }
+            }
+
+            // 첫 다이얼로그 표시 시 자동 실행
+            if (isLoading && result == null) {
+              WidgetsBinding.instance.addPostFrameCallback((_) => runTest());
+            }
+
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: const Row(
+                children: [
+                  Icon(Icons.dns_rounded, color: AppColors.primary),
+                  SizedBox(width: 8),
+                  Text('백엔드 연결 테스트', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                ],
+              ),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Base URL', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                          Text(AppConstants.backendBaseUrl, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                          SizedBox(height: 6),
+                          Text('Target Endpoint', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                          Text('/api/shops/', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    if (isLoading)
+                      const Center(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 24),
+                          child: Column(
+                            children: [
+                              CircularProgressIndicator(),
+                              SizedBox(height: 12),
+                              Text('서버로 GET 요청 전송 중...', style: TextStyle(fontSize: 13, color: Colors.grey)),
+                            ],
+                          ),
+                        ),
+                      )
+                    else if (result != null) ...[
+                      Row(
+                        children: [
+                          Icon(
+                            result!.success ? Icons.check_circle : Icons.error,
+                            color: result!.success ? Colors.green : Colors.red,
+                            size: 28,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  result!.success ? 'HTTP 200 OK - 성공!' : '요청 실패 (${result!.statusCode})',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color: result!.success ? Colors.green.shade700 : Colors.red.shade700,
+                                  ),
+                                ),
+                                Text(
+                                  '응답 속도: ${result!.latency.inMilliseconds}ms | 데이터: ${result!.shopCount}개',
+                                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade50,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: Colors.grey.shade300),
+                        ),
+                        width: double.infinity,
+                        constraints: const BoxConstraints(maxHeight: 120),
+                        child: SingleChildScrollView(
+                          child: Text(
+                            'Response Data:\n${result!.rawData?.toString() ?? "없음"}',
+                            style: const TextStyle(fontSize: 11, fontFamily: 'monospace'),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              actions: [
+                if (!isLoading)
+                  TextButton.icon(
+                    onPressed: runTest,
+                    icon: const Icon(Icons.refresh, size: 18),
+                    label: const Text('다시 테스트'),
+                  ),
+                FilledButton(
+                  onPressed: () => Navigator.pop(dialogCtx),
+                  child: const Text('닫기'),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }

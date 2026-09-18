@@ -1,11 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/models.dart';
-import '../../services/supabase_service.dart';
+import '../../services/api_service.dart';
 import 'location_provider.dart';
 
 // Categories provider
 final categoriesProvider = FutureProvider<List<CategoryModel>>((ref) async {
-  return await ShopService.getCategories();
+  return [];
 });
 
 // Nearby shops provider
@@ -31,34 +31,49 @@ class NearbyShopsNotifier
     _loadShops();
   }
 
+  // Django REST API 응답(Map)을 FlowerShopModel로 안전하게 변환
+  List<FlowerShopModel> _mapToFlowerShops(List<Map<String, dynamic>> rawList) {
+    return rawList.map<FlowerShopModel>((data) {
+      try {
+        return FlowerShopModel.fromJson({
+          'id': data['id']?.toString() ?? '',
+          'name': data['name'] ?? '',
+          'address': data['road_address'] ?? data['address'] ?? '',
+          'latitude': double.tryParse(data['lat']?.toString() ?? '0.0') ?? 0.0,
+          'longitude': double.tryParse(data['lng']?.toString() ?? '0.0') ?? 0.0,
+          'phone': data['phone'] ?? '',
+          'description': data['description'] ?? '',
+          'is_verified': data['is_verified'] ?? true,
+        });
+      } catch (_) {
+        return FlowerShopModel(
+          id: data['id']?.toString() ?? '',
+          name: data['name'] ?? '',
+          address: data['road_address'] ?? data['address'] ?? '',
+          latitude: double.tryParse(data['lat']?.toString() ?? '0.0') ?? 0.0,
+          longitude: double.tryParse(data['lng']?.toString() ?? '0.0') ?? 0.0,
+          phone: data['phone'] ?? '',
+          description: data['description'] ?? '',
+          isVerified: data['is_verified'] ?? true,
+        );
+      }
+    }).toList();
+  }
+
   Future<void> _loadShops() async {
-    location.when(
-      data: (loc) async {
-        try {
-          _currentPage = 0;
-          _hasMore = true;
-          _allShops = [];
+    try {
+      _currentPage = 0;
+      _hasMore = false;
+      _allShops = [];
 
-          final shops = await ShopService.findNearbyShops(
-            latitude: loc.latitude,
-            longitude: loc.longitude,
-            radiusMeters: filters.radiusMeters,
-            categoryId: filters.categoryId,
-            searchQuery: filters.searchQuery,
-            pageSize: 20,
-            offset: 0,
-          );
+      final rawShops = await ApiService.getShops();
+      final shops = _mapToFlowerShops(rawShops);
 
-          _allShops = shops;
-          _hasMore = shops.length >= 20;
-          state = AsyncValue.data(shops);
-        } catch (e, st) {
-          state = AsyncValue.error(e, st);
-        }
-      },
-      loading: () => state = const AsyncValue.loading(),
-      error: (e, st) => state = AsyncValue.error(e, st),
-    );
+      _allShops = shops;
+      state = AsyncValue.data(shops);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
   }
 
   Future<void> refresh() async {
@@ -67,29 +82,7 @@ class NearbyShopsNotifier
   }
 
   Future<void> loadMore() async {
-    if (!_hasMore) return;
-
-    final loc = location.valueOrNull;
-    if (loc == null) return;
-
-    try {
-      _currentPage++;
-      final shops = await ShopService.findNearbyShops(
-        latitude: loc.latitude,
-        longitude: loc.longitude,
-        radiusMeters: filters.radiusMeters,
-        categoryId: filters.categoryId,
-        searchQuery: filters.searchQuery,
-        pageSize: 20,
-        offset: _currentPage * 20,
-      );
-
-      _hasMore = shops.length >= 20;
-      _allShops = [..._allShops, ...shops];
-      state = AsyncValue.data(_allShops);
-    } catch (e) {
-      _currentPage--;
-    }
+    return;
   }
 
   bool get hasMore => _hasMore;
@@ -101,18 +94,77 @@ final selectedShopIdProvider = StateProvider<String?>((ref) => null);
 // Shop detail provider
 final shopDetailProvider =
     FutureProvider.family<FlowerShopModel?, String>((ref, shopId) async {
-  return await ShopService.getShopById(shopId);
+  final rawShops = await ApiService.getShops();
+  final match = rawShops.firstWhere(
+    (item) => item['id']?.toString() == shopId,
+    orElse: () => <String, dynamic>{},
+  );
+  if (match.isEmpty) return null;
+
+  try {
+    return FlowerShopModel.fromJson({
+      'id': match['id']?.toString() ?? '',
+      'name': match['name'] ?? '',
+      'address': match['road_address'] ?? match['address'] ?? '',
+      'latitude': double.tryParse(match['lat']?.toString() ?? '0.0') ?? 0.0,
+      'longitude': double.tryParse(match['lng']?.toString() ?? '0.0') ?? 0.0,
+      'phone': match['phone'] ?? '',
+      'description': match['description'] ?? '',
+      'is_verified': match['is_verified'] ?? true,
+    });
+  } catch (_) {
+    return FlowerShopModel(
+      id: match['id']?.toString() ?? '',
+      name: match['name'] ?? '',
+      address: match['road_address'] ?? match['address'] ?? '',
+      latitude: double.tryParse(match['lat']?.toString() ?? '0.0') ?? 0.0,
+      longitude: double.tryParse(match['lng']?.toString() ?? '0.0') ?? 0.0,
+      phone: match['phone'] ?? '',
+      description: match['description'] ?? '',
+      isVerified: match['is_verified'] ?? true,
+    );
+  }
 });
 
 // Shop photos provider
 final shopPhotosProvider =
     FutureProvider.family<List<ShopPhotoModel>, String>((ref, shopId) async {
-  return await ShopService.getShopPhotos(shopId);
+  return [];
 });
 
 // Search results provider
 final searchResultsProvider = FutureProvider.family<List<FlowerShopModel>, String>(
     (ref, query) async {
   if (query.isEmpty) return [];
-  return await ShopService.searchShops(query);
+  final rawShops = await ApiService.getShops();
+  final filtered = rawShops.where((shop) {
+    final name = shop['name']?.toString().toLowerCase() ?? '';
+    return name.contains(query.toLowerCase());
+  }).toList();
+
+  return filtered.map<FlowerShopModel>((data) {
+    try {
+      return FlowerShopModel.fromJson({
+        'id': data['id']?.toString() ?? '',
+        'name': data['name'] ?? '',
+        'address': data['road_address'] ?? data['address'] ?? '',
+        'latitude': double.tryParse(data['lat']?.toString() ?? '0.0') ?? 0.0,
+        'longitude': double.tryParse(data['lng']?.toString() ?? '0.0') ?? 0.0,
+        'phone': data['phone'] ?? '',
+        'description': data['description'] ?? '',
+        'is_verified': data['is_verified'] ?? true,
+      });
+    } catch (_) {
+      return FlowerShopModel(
+        id: data['id']?.toString() ?? '',
+        name: data['name'] ?? '',
+        address: data['road_address'] ?? data['address'] ?? '',
+        latitude: double.tryParse(data['lat']?.toString() ?? '0.0') ?? 0.0,
+        longitude: double.tryParse(data['lng']?.toString() ?? '0.0') ?? 0.0,
+        phone: data['phone'] ?? '',
+        description: data['description'] ?? '',
+        isVerified: data['is_verified'] ?? true,
+      );
+    }
+  }).toList();
 });

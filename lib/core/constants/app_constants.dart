@@ -7,10 +7,16 @@ class AppConstants {
   static const String appName = '꽃동네';
   static const String appNameEn = 'KkotDongnae';
 
+  // Backend API Configuration
+  static const String backendBaseUrl = 'http://3.25.235.50:8000';
+  static const String apiBaseUrl = '$backendBaseUrl/api';
+
   // Supabase Configuration
   // Replace with your actual Supabase credentials
-  static const String supabaseUrl = 'YOUR_SUPABASE_URL';
-  static const String supabaseAnonKey = 'YOUR_SUPABASE_ANON_KEY';
+  // lib/core/constants/app_constants.dart
+
+static const String supabaseUrl = 'https://dkhkahersjeicupjobjl.supabase.co';
+static const String supabaseAnonKey = 'sb_publishable_7KcKKJ_nGGN3yo0L3oSsSQ_Ba3I68eU';
 
   // Location Settings
   static const double defaultLatitude = 37.5665; // Seoul
@@ -59,6 +65,8 @@ class HiveBoxes {
 class StorageKeys {
   StorageKeys._();
 
+  static const String accessToken = 'jwt_access_token';
+  static const String refreshToken = 'jwt_refresh_token';
   static const String onboardingCompleted = 'onboarding_completed';
   static const String lastLocation = 'last_location';
   static const String searchRadius = 'search_radius';
