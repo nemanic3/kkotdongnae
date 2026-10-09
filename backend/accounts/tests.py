@@ -33,7 +33,10 @@ class UserFlowTests(APITestCase):
         tokens=self.login(self.user)
         self.assertEqual(self.client.get('/api/users/me/').data['email'], self.user.email)
         self.assertEqual(self.client.patch('/api/users/me/',{'name':'Updated'}).status_code,200)
-        self.assertEqual(self.client.post('/api/auth/refresh/',{'refresh':tokens['refresh']}).status_code,200)
+        refreshed = self.client.post('/api/auth/refresh/',{'refresh':tokens['refresh']})
+        self.assertEqual(refreshed.status_code,200)
+        self.assertEqual(self.client.post('/api/auth/logout/',{'refresh':refreshed.data['refresh']}).status_code,200)
+        self.assertEqual(self.client.post('/api/auth/refresh/',{'refresh':refreshed.data['refresh']}).status_code,401)
     def test_favorites_are_user_scoped(self):
         self.login(self.user)
         self.assertIn(self.client.post(f'/api/favorites/shops/{self.shop.pk}/').status_code,[200,201])

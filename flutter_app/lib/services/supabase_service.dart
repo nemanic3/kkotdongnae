@@ -44,6 +44,12 @@ class SupabaseService {
     _authenticate('/api/auth/signup/', {'email': email, 'password': password,
       'password_confirm': password, 'name': displayName ?? '', 'phone': ''});
   static Future<void> signOut() async {
+    try {
+      final refresh = await TokenStorage.getRefreshToken();
+      if (refresh != null) await ApiClient.instance.post('/api/auth/logout/', data: {'refresh': refresh});
+    } catch (_) {
+      // 연결 실패 시에도 현재 기기의 세션은 정리한다.
+    }
     await TokenStorage.clearTokens();
     currentUser = null;
   }

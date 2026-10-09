@@ -3,6 +3,7 @@ from rest_framework import status, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.exceptions import TokenError
 
 from .models import Notification
 from .serializers import (
@@ -64,6 +65,13 @@ class LogoutView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
+        try:
+            token = RefreshToken(request.data.get('refresh', ''))
+            if str(token['user_id']) != str(request.user.pk):
+                return Response({'detail': 'Invalid refresh token'}, status=400)
+            token.blacklist()
+        except TokenError:
+            return Response({'detail': 'Invalid refresh token'}, status=400)
         return Response(
             {"message": "로그아웃 완료"},
             status=status.HTTP_200_OK,

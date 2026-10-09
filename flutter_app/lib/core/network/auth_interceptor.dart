@@ -62,7 +62,7 @@ class AuthInterceptor extends QueuedInterceptor {
 
             if (response.statusCode == 200) {
               final newAccess = response.data['access'] as String;
-              await TokenStorage.saveAccessToken(newAccess);
+              await TokenStorage.saveTokens(access: newAccess, refresh: response.data['refresh'] as String? ?? refreshToken);
 
               // 원래 요청의 헤더를 새 토큰으로 업데이트 후 재시도
               final retryOptions = err.requestOptions;
