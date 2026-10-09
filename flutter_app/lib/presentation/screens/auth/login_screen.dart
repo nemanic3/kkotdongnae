@@ -139,7 +139,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: () => context.push('/forgot-password'),
+                    onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('비밀번호 재설정은 아직 제공하지 않습니다.')),
+                    ),
                     child: const Text('비밀번호를 잊으셨나요?'),
                   ),
                 ),

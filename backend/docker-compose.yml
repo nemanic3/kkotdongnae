@@ -6,11 +6,11 @@ services:
     environment:
       POSTGRES_DB: kkotdongnae_db
       POSTGRES_USER: kkot_user
-      POSTGRES_PASSWORD: kkot1234
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set a private development password}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "127.0.0.1:15432:5432"
 
   web:
     build: .
@@ -18,12 +18,13 @@ services:
     volumes:
       - .:/app
     ports:
-      - "8000:8000"
+      - "127.0.0.1:18000:8000"
     environment:
       - DEBUG=1
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY:?Set a private development signing key}
       - POSTGRES_DB=kkotdongnae_db
       - POSTGRES_USER=kkot_user
-      - POSTGRES_PASSWORD=kkot1234
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?Set a private development password}
       - POSTGRES_HOST=db
       - POSTGRES_PORT=5432
     depends_on:

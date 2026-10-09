@@ -40,7 +40,7 @@ class AuthInterceptor extends QueuedInterceptor {
           requestPath.contains('/auth/refresh');
 
       // 로그인이나 리프레시 요청 자체의 401 에러인 경우는 루프 방지를 위해 바로 에러 반환
-      if (!isAuthEndpoint) {
+      if (!isAuthEndpoint && err.requestOptions.extra['retried'] != true) {
         final refreshToken = await TokenStorage.getRefreshToken();
 
         if (refreshToken != null && refreshToken.isNotEmpty) {
@@ -67,12 +67,13 @@ class AuthInterceptor extends QueuedInterceptor {
               // 원래 요청의 헤더를 새 토큰으로 업데이트 후 재시도
               final retryOptions = err.requestOptions;
               retryOptions.headers['Authorization'] = 'Bearer $newAccess';
+              retryOptions.extra['retried'] = true;
 
               final retryResponse = await dio.fetch(retryOptions);
               return handler.resolve(retryResponse);
             }
           } catch (refreshErr) {
-            debugPrint('Token refresh failed: $refreshErr');
+            debugPrint('Session expired');
             // 리프레시 토큰도 만료되었으므로 세션 정리
             await TokenStorage.clearTokens();
           }

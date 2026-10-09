@@ -1,0 +1,8 @@
+.git
+.private
+**/.venv
+**/__pycache__
+**/build
+**/.dart_tool
+**/.env*
+flutter_app

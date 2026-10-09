@@ -1,4 +1,13 @@
 # Miscellaneous
+.private/
+.env
+.env.*
+!.env.example
+**/.venv/
+**/__pycache__/
+**/build/
+backend/staticfiles/
+backend/media/
 *.class
 *.log
 *.pyc

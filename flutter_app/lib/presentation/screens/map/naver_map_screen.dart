@@ -3,7 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../data/models/models.dart';
-import '../../../data/mock/mock_data.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../../providers/shop_provider.dart';
 import '../../providers/location_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../widgets/shop_card.dart';
@@ -19,11 +20,12 @@ class NaverMapScreen extends ConsumerStatefulWidget {
 
 class _NaverMapScreenState extends ConsumerState<NaverMapScreen> {
   FlowerShopModel? _selectedShop;
-  final List<FlowerShopModel> _shops = MockData.shops;
+  List<FlowerShopModel> _shops = [];
 
   @override
   Widget build(BuildContext context) {
     final cartCount = ref.watch(cartItemCountProvider);
+    _shops = ref.watch(nearbyShopsProvider).valueOrNull ?? [];
 
     return Scaffold(
       appBar: AppBar(
@@ -99,7 +101,7 @@ class _NaverMapScreenState extends ConsumerState<NaverMapScreen> {
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
-              'API 키 설정 후 지도가 표시됩니다',
+              _shops.isEmpty ? '주변 꽃집이 없으면 검색 반경을 넓혀보세요' : '꽃집을 선택해 지도에서 위치를 확인하세요',
               style: AppTextStyles.bodyMedium.copyWith(
                 color: AppColors.textHint,
               ),
@@ -112,7 +114,10 @@ class _NaverMapScreenState extends ConsumerState<NaverMapScreen> {
                 return ActionChip(
                   avatar: const Icon(Icons.location_on, size: 18),
                   label: Text(shop.name),
-                  onPressed: () => _selectShop(shop),
+                  onPressed: () {
+                    _selectShop(shop);
+                    launchUrl(Uri.https('map.naver.com', '/v5/search/${shop.name} ${shop.address}'), mode: LaunchMode.externalApplication);
+                  },
                 );
               }).toList(),
             ),
@@ -129,13 +134,15 @@ class _NaverMapScreenState extends ConsumerState<NaverMapScreen> {
       child: ListView(
         scrollDirection: Axis.horizontal,
         children: [
-          _DistanceChip(label: '500m', isSelected: false, onTap: () {}),
+          _DistanceChip(label: '500m', isSelected: ref.watch(searchFiltersProvider).radiusMeters == 500, onTap: () => ref.read(searchFiltersProvider.notifier).updateRadius(500)),
           const SizedBox(width: AppSpacing.sm),
-          _DistanceChip(label: '1km', isSelected: true, onTap: () {}),
+          _DistanceChip(label: '1km', isSelected: ref.watch(searchFiltersProvider).radiusMeters == 1000, onTap: () => ref.read(searchFiltersProvider.notifier).updateRadius(1000)),
           const SizedBox(width: AppSpacing.sm),
-          _DistanceChip(label: '3km', isSelected: false, onTap: () {}),
+          _DistanceChip(label: '3km', isSelected: ref.watch(searchFiltersProvider).radiusMeters == 3000, onTap: () => ref.read(searchFiltersProvider.notifier).updateRadius(3000)),
           const SizedBox(width: AppSpacing.sm),
-          _DistanceChip(label: '5km', isSelected: false, onTap: () {}),
+          _DistanceChip(label: '5km', isSelected: ref.watch(searchFiltersProvider).radiusMeters == 5000, onTap: () => ref.read(searchFiltersProvider.notifier).updateRadius(5000)),
+          const SizedBox(width: AppSpacing.sm),
+          _DistanceChip(label: '50km', isSelected: ref.watch(searchFiltersProvider).radiusMeters == 50000, onTap: () => ref.read(searchFiltersProvider.notifier).updateRadius(50000)),
         ],
       ),
     );
@@ -238,9 +245,7 @@ class _NaverMapScreenState extends ConsumerState<NaverMapScreen> {
   }
 
   void _goToMyLocation() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('내 위치로 이동합니다')),
-    );
+    ref.read(currentLocationProvider.notifier).refreshLocation();
   }
 }
 

@@ -1,11 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/models.dart';
 import '../../services/supabase_service.dart';
+import 'auth_provider.dart';
 
 // User favorites provider
 final favoritesProvider =
     StateNotifierProvider<FavoritesNotifier, AsyncValue<List<FavoriteModel>>>(
         (ref) {
+  ref.watch(currentUserProvider);
   return FavoritesNotifier();
 });
 

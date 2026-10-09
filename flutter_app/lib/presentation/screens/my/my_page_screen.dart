@@ -3,7 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/constants/app_constants.dart';
-import '../../../data/mock/mock_data.dart';
+import '../../../data/models/user_model.dart';
+import '../../providers/auth_provider.dart';
 import '../../../services/api_service.dart';
 import '../../providers/cart_provider.dart';
 
@@ -14,7 +15,7 @@ class MyPageScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cartCount = ref.watch(cartItemCountProvider);
-    final user = MockData.currentUser;
+    final user = ref.watch(currentUserProvider) ?? const UserModel(id: '', email: '', displayName: '방문자');
 
     return Scaffold(
       appBar: AppBar(
@@ -49,7 +50,7 @@ class MyPageScreen extends ConsumerWidget {
             const Divider(height: 1),
 
             // 메뉴 목록
-            _buildMenuSection(context),
+            _buildMenuSection(context, ref),
           ],
         ),
       ),
@@ -107,7 +108,7 @@ class MyPageScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildMenuSection(BuildContext context) {
+  Widget _buildMenuSection(BuildContext context, WidgetRef ref) {
     return Column(
       children: [
         _MenuItem(
@@ -196,14 +197,14 @@ class MyPageScreen extends ConsumerWidget {
           title: '로그아웃',
           textColor: AppColors.error,
           onTap: () {
-            _showLogoutDialog(context);
+            _showLogoutDialog(context, ref);
           },
         ),
       ],
     );
   }
 
-  void _showLogoutDialog(BuildContext context) {
+  void _showLogoutDialog(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -217,7 +218,8 @@ class MyPageScreen extends ConsumerWidget {
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              // TODO: 로그아웃 처리
+              ref.read(authNotifierProvider.notifier).signOut();
+              context.go('/login');
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('로그아웃되었습니다')),
               );

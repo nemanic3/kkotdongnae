@@ -1,5 +1,6 @@
 from django.urls import path
 from .views import (
+    MyReviewListView,
     SellerShopCreateView,
     SellerShopMeView,
     ShopListView,
@@ -32,6 +33,7 @@ from .views import (
 )
 
 urlpatterns = [
+    path("users/me/reviews/", MyReviewListView.as_view()),
     path("seller/shops/", SellerShopCreateView.as_view()),
     path("seller/shops/me/", SellerShopMeView.as_view()),
 

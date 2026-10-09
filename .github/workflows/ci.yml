@@ -1,0 +1,89 @@
+name: Verify and publish
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: kkot_ci
+          POSTGRES_USER: kkot_ci
+          POSTGRES_PASSWORD: ci-only-disposable
+        options: >-
+          --health-cmd "pg_isready -U kkot_ci"
+          --health-interval 10s --health-timeout 5s --health-retries 5
+        ports: [5432:5432]
+    env:
+      DJANGO_SECRET_KEY: ci-only-disposable-signing-key-never-used-in-production
+      DEBUG: '1'
+      POSTGRES_DB: kkot_ci
+      POSTGRES_USER: kkot_ci
+      POSTGRES_PASSWORD: ci-only-disposable
+      POSTGRES_HOST: 127.0.0.1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -r backend/requirements.txt
+      - run: python backend/manage.py check
+      - run: python backend/manage.py makemigrations --check --dry-run
+      - run: python backend/manage.py test
+      - run: node --test deploy/pages/proxy.test.mjs
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.2'
+          channel: stable
+          cache: true
+      - run: flutter pub get
+        working-directory: flutter_app
+      - run: flutter analyze --no-fatal-infos --no-fatal-warnings
+        working-directory: flutter_app
+      - run: flutter test test/widget_test.dart
+        working-directory: flutter_app
+      - run: scripts/build-pages.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pages-web
+          path: flutter_app/build/web
+  publish:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: [backend, frontend]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: pages-web
+          path: /tmp/kkot-pages
+      - name: Publish verified static release for Cloudflare Pages
+        env:
+          SOURCE_COMMIT: ${{ github.sha }}
+        run: |
+          cd /tmp/kkot-pages
+          git init -b pages
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          printf '%s\n' "$SOURCE_COMMIT" > release.txt
+          git add .
+          git commit -m "Publish verified $SOURCE_COMMIT"
+          git remote add origin "https://github.com/${{ github.repository }}.git"
+          AUTH=$(printf 'x-access-token:%s' '${{ secrets.GITHUB_TOKEN }}' | base64 -w0)
+          git -c http.extraheader="AUTHORIZATION: basic $AUTH" push --force origin pages

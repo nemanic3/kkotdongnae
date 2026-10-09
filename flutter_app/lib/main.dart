@@ -14,7 +14,7 @@ void main() async {
   await Hive.openBox(HiveBoxes.settings);
   await Hive.openBox(HiveBoxes.searchHistory);
 
-  // Initialize Supabase
+  // Restore Django JWT session
   await SupabaseService.initialize();
 
   runApp(

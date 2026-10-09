@@ -1,4 +1,4 @@
-from math import radians, sin, cos, sqrt, atan2
+from math import radians, sin, cos, sqrt, atan2, isfinite
 
 from django.utils import timezone
 from rest_framework import generics, permissions
@@ -88,9 +88,12 @@ class ShopNearbyView(APIView):
         if not lat or not lng:
             return Response({"detail": "lat, lng는 필수입니다."}, status=400)
 
-        lat = float(lat)
-        lng = float(lng)
-        radius = float(radius)
+        try:
+            lat, lng, radius = float(lat), float(lng), float(radius)
+            if not all(isfinite(v) for v in (lat, lng, radius)) or not (-90 <= lat <= 90 and -180 <= lng <= 180 and 0 < radius <= 50):
+                raise ValueError
+        except (ValueError, TypeError):
+            return Response({"detail": "올바른 위도·경도와 0~50km 반경을 입력하세요."}, status=400)
 
         result = []
 
@@ -390,3 +393,9 @@ class ReminderDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         return Reminder.objects.filter(user=self.request.user)
+
+class MyReviewListView(generics.ListAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = ReviewSerializer
+    def get_queryset(self):
+        return Review.objects.filter(user=self.request.user).order_by('-created_at')

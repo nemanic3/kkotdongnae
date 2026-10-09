@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/models.dart';
 import '../../services/api_service.dart';
+import '../../services/supabase_service.dart';
 import 'location_provider.dart';
 
 // Categories provider
@@ -43,7 +44,7 @@ class NearbyShopsNotifier
           'longitude': double.tryParse(data['lng']?.toString() ?? '0.0') ?? 0.0,
           'phone': data['phone'] ?? '',
           'description': data['description'] ?? '',
-          'is_verified': data['is_verified'] ?? true,
+          'is_verified': data['is_verified'] ?? false,
         });
       } catch (_) {
         return FlowerShopModel(
@@ -54,7 +55,7 @@ class NearbyShopsNotifier
           longitude: double.tryParse(data['lng']?.toString() ?? '0.0') ?? 0.0,
           phone: data['phone'] ?? '',
           description: data['description'] ?? '',
-          isVerified: data['is_verified'] ?? true,
+          isVerified: data['is_verified'] ?? false,
         );
       }
     }).toList();
@@ -66,8 +67,11 @@ class NearbyShopsNotifier
       _hasMore = false;
       _allShops = [];
 
-      final rawShops = await ApiService.getShops();
-      final shops = _mapToFlowerShops(rawShops);
+      final position = location.valueOrNull;
+      final shops = position == null
+          ? (await ApiService.getShops()).map(shopFromApi).toList()
+          : await ShopService.findNearbyShops(latitude: position.latitude,
+              longitude: position.longitude, radiusMeters: filters.radiusMeters);
 
       _allShops = shops;
       state = AsyncValue.data(shops);
@@ -110,7 +114,7 @@ final shopDetailProvider =
       'longitude': double.tryParse(match['lng']?.toString() ?? '0.0') ?? 0.0,
       'phone': match['phone'] ?? '',
       'description': match['description'] ?? '',
-      'is_verified': match['is_verified'] ?? true,
+      'is_verified': match['is_verified'] ?? false,
     });
   } catch (_) {
     return FlowerShopModel(
@@ -121,7 +125,7 @@ final shopDetailProvider =
       longitude: double.tryParse(match['lng']?.toString() ?? '0.0') ?? 0.0,
       phone: match['phone'] ?? '',
       description: match['description'] ?? '',
-      isVerified: match['is_verified'] ?? true,
+      isVerified: match['is_verified'] ?? false,
     );
   }
 });
@@ -152,7 +156,7 @@ final searchResultsProvider = FutureProvider.family<List<FlowerShopModel>, Strin
         'longitude': double.tryParse(data['lng']?.toString() ?? '0.0') ?? 0.0,
         'phone': data['phone'] ?? '',
         'description': data['description'] ?? '',
-        'is_verified': data['is_verified'] ?? true,
+        'is_verified': data['is_verified'] ?? false,
       });
     } catch (_) {
       return FlowerShopModel(
@@ -163,7 +167,7 @@ final searchResultsProvider = FutureProvider.family<List<FlowerShopModel>, Strin
         longitude: double.tryParse(data['lng']?.toString() ?? '0.0') ?? 0.0,
         phone: data['phone'] ?? '',
         description: data['description'] ?? '',
-        isVerified: data['is_verified'] ?? true,
+        isVerified: data['is_verified'] ?? false,
       );
     }
   }).toList();

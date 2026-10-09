@@ -8,15 +8,13 @@ class AppConstants {
   static const String appNameEn = 'KkotDongnae';
 
   // Backend API Configuration
-  static const String backendBaseUrl = 'http://3.25.235.50:8000';
+  static const String backendBaseUrl = String.fromEnvironment(
+    'API_ORIGIN', defaultValue: 'https://kkotdongnae.nemanic.dev');
   static const String apiBaseUrl = '$backendBaseUrl/api';
 
   // Supabase Configuration
   // Replace with your actual Supabase credentials
   // lib/core/constants/app_constants.dart
-
-static const String supabaseUrl = 'https://dkhkahersjeicupjobjl.supabase.co';
-static const String supabaseAnonKey = 'sb_publishable_7KcKKJ_nGGN3yo0L3oSsSQ_Ba3I68eU';
 
   // Location Settings
   static const double defaultLatitude = 37.5665; // Seoul

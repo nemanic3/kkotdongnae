@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.utils import timezone
 from rest_framework import generics, permissions, status
 from rest_framework.exceptions import PermissionDenied
@@ -63,6 +64,9 @@ class OrderPayView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, order_id):
+        if not settings.PAYMENT_ENABLED:
+            return Response({"detail": "실제 결제는 아직 제공하지 않습니다."}, status=503)
+
         order = generics.get_object_or_404(
             Order,
             id=order_id,

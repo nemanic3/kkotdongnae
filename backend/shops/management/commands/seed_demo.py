@@ -1,3 +1,4 @@
+import os
 from datetime import time, timedelta
 from zoneinfo import ZoneInfo
 
@@ -23,7 +24,10 @@ class Command(BaseCommand):
             email="demo@kkotdongnae.test", defaults={"name": "꽃동네 체험회원"}
         )
         if created:
-            customer.set_password("KkotDemo123!")
+            password = os.environ.get("DEMO_PASSWORD")
+            if not password:
+                raise CommandError("비공개 DEMO_PASSWORD 환경 변수가 필요합니다.")
+            customer.set_password(password)
             customer.save(update_fields=["password"])
 
         today = timezone.now().astimezone(ZoneInfo("Asia/Seoul")).date()

@@ -1,0 +1,4 @@
+from .settings import *
+DEBUG = True
+SECURE_SSL_REDIRECT = False
+REST_FRAMEWORK = {**REST_FRAMEWORK, 'DEFAULT_THROTTLE_CLASSES': ()}

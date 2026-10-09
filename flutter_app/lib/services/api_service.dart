@@ -44,7 +44,7 @@ class ApiService {
       );
 
       if (response.statusCode == 200 && response.data != null) {
-        final data = response.data;
+        final data = response.data['tokens'];
         final access = data['access'] as String?;
         final refresh = data['refresh'] as String?;
 
@@ -88,8 +88,7 @@ class ApiService {
       }
       return [];
     } catch (e) {
-      debugPrint('ApiService.getShops error: $e');
-      return [];
+      rethrow;
     }
   }
 

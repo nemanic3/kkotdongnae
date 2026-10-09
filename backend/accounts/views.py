@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import status, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -108,7 +109,7 @@ class NotificationReadView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def patch(self, request, id):
-        notification = Notification.objects.get(
+        notification = get_object_or_404(Notification,
             id=id,
             user=request.user
         )

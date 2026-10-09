@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import '../constants/app_constants.dart';
 import 'auth_interceptor.dart';
 
@@ -28,19 +27,6 @@ class ApiClient {
 
     // JWT 인증 인터셉터 추가
     dio.interceptors.add(AuthInterceptor(dio: dio));
-
-    // 디버그 모드 로그 인터셉터
-    if (kDebugMode) {
-      dio.interceptors.add(
-        LogInterceptor(
-          requestHeader: true,
-          requestBody: true,
-          responseHeader: false,
-          responseBody: true,
-          logPrint: (log) => debugPrint('[DIO] $log'),
-        ),
-      );
-    }
 
     return dio;
   }

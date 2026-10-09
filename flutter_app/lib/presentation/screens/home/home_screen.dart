@@ -31,10 +31,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screens,
-      ),
+      body: Column(children: [
+        const SafeArea(bottom: false, child: Padding(
+          padding: EdgeInsets.all(8),
+          child: Text('피드·채팅·주문 화면은 데모입니다. 실제 결제·사진 업로드는 제공하지 않습니다.', textAlign: TextAlign.center),
+        )),
+        Expanded(child: IndexedStack(index: _currentIndex, children: _screens)),
+      ]),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,

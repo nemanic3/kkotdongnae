@@ -1,4 +1,5 @@
 from django.utils import timezone
+from django.db import transaction
 from rest_framework import serializers
 
 from shops.models import Product, Slot
@@ -82,7 +83,14 @@ class OrderCreateSerializer(serializers.ModelSerializer):
 
         return attrs
 
+    @transaction.atomic
     def create(self, validated_data):
+        slot = validated_data.get("slot")
+        if slot:
+            slot = Slot.objects.select_for_update().get(pk=slot.pk)
+            if not slot.is_available:
+                raise serializers.ValidationError("예약 가능한 슬롯이 아닙니다.")
+            validated_data["slot"] = slot
         product = validated_data["product"]
         quantity = validated_data.get("quantity", 1)
 

@@ -1,4 +1,5 @@
 from django.contrib.auth import authenticate
+from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from .models import User, Notification
 
@@ -18,6 +19,7 @@ class SignupSerializer(serializers.ModelSerializer):
         if User.objects.filter(email=data["email"]).exists():
             raise serializers.ValidationError("이미 가입된 이메일입니다.")
 
+        validate_password(data["password"], User(email=data["email"]))
         return data
 
     def create(self, validated_data):
