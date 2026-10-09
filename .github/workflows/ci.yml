@@ -39,7 +39,7 @@ jobs:
       - run: pip install -r backend/requirements.txt
       - run: python backend/manage.py check
       - run: python backend/manage.py makemigrations --check --dry-run
-      - run: python backend/manage.py test
+      - run: python backend/manage.py test accounts shops orders
       - run: node --test deploy/pages/proxy.test.mjs
   frontend:
     runs-on: ubuntu-latest

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>Label</key><string>dev.nemanic.kkotdongnae.deploy</string>
+  <key>ProgramArguments</key><array>
+    <string>/opt/homebrew/bin/python3</string>
+    <string>/Users/shinsunghyun/Desktop/kkotdongnae/scripts/poll-deploy.py</string>
+  </array>
+  <key>WorkingDirectory</key><string>/Users/shinsunghyun/Desktop/kkotdongnae</string>
+  <key>EnvironmentVariables</key><dict><key>PATH</key><string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string></dict>
+  <key>RunAtLoad</key><true/>
+  <key>StartInterval</key><integer>300</integer>
+  <key>StandardOutPath</key><string>/Users/shinsunghyun/Desktop/kkotdongnae/.private/poller.log</string>
+  <key>StandardErrorPath</key><string>/Users/shinsunghyun/Desktop/kkotdongnae/.private/poller-error.log</string>
+</dict></plist>
