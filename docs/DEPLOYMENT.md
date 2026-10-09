@@ -33,7 +33,7 @@ API는 localhost:18080에만 바인딩하고 DB는 호스트 포트를 열지 �
 
 ## 자동 배포
 
-GitHub `Verify and publish`는 main의 Django PostgreSQL 테스트와 Flutter 검사를 모두 통과한 경우에만 정적 빌드를 `pages` 브랜치에 게시합니다. Pages는 기존 설치된 GitHub 앱으로 `nemanic3/kkotdongnae`의 `pages` 브랜치를 연결하며 빌드 명령은 비우고 출력은 `/`로 둡니다. 소스 README/DB/env를 게시하지 않고 검사된 정적 산출물만 배포합니다. PR/preview에서는 운영 API를 차단합니다.
+GitHub `Verify and publish`는 main의 Django PostgreSQL 테스트와 Flutter 검사를 모두 통과한 경우에만 정적 빌드를 `pages` 브랜치의 `public/`에 게시합니다. Pages는 기존 설치된 GitHub 앱으로 `nemanic3/kkotdongnae`의 `pages` 브랜치를 연결하며 빌드 명령은 비우고 출력은 `public`으로 둡니다. 소스 README/DB/env를 게시하지 않고 검사된 정적 산출물만 배포합니다. PR/preview에서는 운영 API를 차단합니다.
 
 Mac API는 `scripts/deploy-backend.sh`로 백업→빌드→보안 검사→migration→static→시작합니다. 자동 배포 poller는 검사가 성공한 main commit만 독립 release 디렉터리에 체크아웃하고 운영 private env를 사용합니다. 공개 self-hosted GitHub runner는 설치하지 않습니다. 저장소 변경 권한은 서버 코드 실행 권한이므로 main 권한을 관리하세요.
 

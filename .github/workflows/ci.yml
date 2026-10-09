@@ -77,11 +77,13 @@ jobs:
         env:
           SOURCE_COMMIT: ${{ github.sha }}
         run: |
-          cd /tmp/kkot-pages
+          mkdir -p /tmp/kkot-publish/public
+          cp -a /tmp/kkot-pages/. /tmp/kkot-publish/public/
+          cd /tmp/kkot-publish
           git init -b pages
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          printf '%s\n' "$SOURCE_COMMIT" > release.txt
+          printf '%s\n' "$SOURCE_COMMIT" > public/release.txt
           git add .
           git commit -m "Publish verified $SOURCE_COMMIT"
           git remote add origin "https://github.com/${{ github.repository }}.git"
