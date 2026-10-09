@@ -135,6 +135,6 @@ class ReviewCard extends ConsumerWidget {
 
   String _formatDate(DateTime? date) {
     if (date == null) return '';
-    return DateFormat('yyyy.MM.dd').format(date);
+    return DateFormat('yyyy.MM.dd').format(date.toLocal());
   }
 }

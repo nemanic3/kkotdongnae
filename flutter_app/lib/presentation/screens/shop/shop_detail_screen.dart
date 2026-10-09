@@ -84,14 +84,19 @@ class ShopDetailScreen extends ConsumerWidget {
                 ),
                 actions: [
                   IconButton(
+                    tooltip: '즐겨찾기',
                     icon: Icon(
                       isFavorite ? Icons.favorite : Icons.favorite_border,
                       color: isFavorite ? AppColors.primary : null,
                     ),
-                    onPressed: () {
-                      ref
-                          .read(favoritesProvider.notifier)
-                          .toggleFavorite(shop.id);
+                    onPressed: () async {
+                      try {
+                        await ref.read(favoritesProvider.notifier).toggleFavorite(shop.id);
+                      } catch (_) {
+                        if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('로그인 상태와 서비스 연결을 확인해주세요.')),
+                        );
+                      }
                     },
                   ),
                   IconButton(

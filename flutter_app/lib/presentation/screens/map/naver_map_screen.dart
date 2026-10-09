@@ -31,6 +31,7 @@ class _NaverMapScreenState extends ConsumerState<NaverMapScreen> {
       appBar: AppBar(
         title: const Text('내 주변'),
         actions: [
+          IconButton(tooltip: '꽃집 검색', icon: const Icon(Icons.search), onPressed: () => context.push('/search')),
           // 장바구니 버튼
           Badge(
             isLabelVisible: cartCount > 0,
@@ -101,7 +102,7 @@ class _NaverMapScreenState extends ConsumerState<NaverMapScreen> {
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
-              _shops.isEmpty ? '주변 꽃집이 없으면 검색 반경을 넓혀보세요' : '꽃집을 선택해 지도에서 위치를 확인하세요',
+              ref.watch(nearbyShopsProvider).hasError ? '꽃집 정보를 불러올 수 없습니다. 잠시 후 다시 시도해주세요.' : _shops.isEmpty ? '서울 기본 위치입니다. 검색 반경을 넓히거나 내 위치 버튼을 눌러보세요.' : '꽃집을 선택해 지도에서 위치를 확인하세요',
               style: AppTextStyles.bodyMedium.copyWith(
                 color: AppColors.textHint,
               ),

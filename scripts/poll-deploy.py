@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Deploy only main commits whose GitHub verification workflow succeeded."""
+import fcntl
 import io
 import json
 from pathlib import Path
@@ -8,13 +9,19 @@ import tarfile
 
 root = Path(__file__).resolve().parents[1]
 private = root / '.private'
+private.mkdir(exist_ok=True)
+lock = (private / 'poller.lock').open('w')
+try:
+    fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+except BlockingIOError:
+    raise SystemExit(0)
 
 def run(args, **kwargs):
-    return subprocess.run(args, cwd=root, check=True, capture_output=True, **kwargs)
+    return subprocess.run(args, cwd=root, check=True, capture_output=True, timeout=45, **kwargs)
 
 try:
     run(['docker', 'info'])
-except subprocess.CalledProcessError:
+except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
     raise SystemExit(0)
 
 try:
@@ -43,6 +50,6 @@ try:
         check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     marker.write_text(sha+'\n')
     print('Verified backend release deployed:', sha[:12])
-except subprocess.CalledProcessError:
+except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
     print('Deployment failed; inspect private environment and CI.')
     raise SystemExit(1)

@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../data/models/models.dart';
-import '../../../data/mock/mock_data.dart';
+import '../../providers/favorite_provider.dart';
 import '../../providers/order_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../widgets/shop_card.dart';
@@ -75,10 +75,13 @@ class _FavoritesOrdersScreenState extends ConsumerState<FavoritesOrdersScreen>
 }
 
 /// 찜 목록 탭
-class _FavoritesTab extends StatelessWidget {
+class _FavoritesTab extends ConsumerWidget {
   @override
-  Widget build(BuildContext context) {
-    final favorites = MockData.favoriteShops;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(favoritesProvider);
+    if (state.isLoading) return const Center(child: CircularProgressIndicator());
+    if (state.hasError) return const Center(child: Text('찜 목록을 불러올 수 없습니다.'));
+    final favorites = (state.valueOrNull ?? []).map((f) => f.shop).whereType<FlowerShopModel>().toList();
 
     if (favorites.isEmpty) {
       return Center(
@@ -115,7 +118,7 @@ class _FavoritesTab extends StatelessWidget {
       itemBuilder: (context, index) {
         return Padding(
           padding: const EdgeInsets.only(bottom: AppSpacing.md),
-          child: ShopCard(shop: favorites[index]),
+          child: ShopCard(shop: favorites[index], onTap: () => context.push('/shop/${favorites[index].id}')),
         );
       },
     );

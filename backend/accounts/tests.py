@@ -51,6 +51,7 @@ class UserFlowTests(APITestCase):
         response=self.client.post('/api/reviews/',{'shop':self.shop.pk,'rating':5,'comment':'Test review'})
         self.assertEqual(response.status_code,201)
         self.assertEqual(len(self.client.get('/api/users/me/reviews/').data),1)
+        self.assertEqual(self.client.get(f'/api/shops/{self.shop.pk}/').data['review_count'],1)
         self.login(self.other)
         self.assertEqual(self.client.get('/api/users/me/reviews/').data,[])
         self.assertEqual(len(self.client.get(f'/api/shops/{self.shop.pk}/reviews/').data),1)

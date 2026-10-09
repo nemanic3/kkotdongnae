@@ -2,10 +2,12 @@
 
 Flutter UI와 Django REST API로 구성한 위치 기반 꽃집 탐색 프로젝트입니다. 기존 모바일 스타일 UI를 Flutter 웹으로 빌드하며 로그인·회원가입, 꽃집 목록/상세/검색, 거리 기반 주변 조회, 사용자별 즐겨찾기, 리뷰 작성/조회는 Django PostgreSQL에 연결합니다.
 
-- 목표 공개 주소: https://kkotdongnae.nemanic.dev
+- 공개 프런트엔드 주소: https://kkotdongnae.nemanic.dev
 - GitHub: https://github.com/nemanic3/kkotdongnae
 - 배포·검증 현황과 복구 방법: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
 - 홈페이지에 복사할 소개: [docs/NEMANIC_INTRO.md](docs/NEMANIC_INTRO.md)
+
+> 프런트엔드 HTTPS 배포는 완료했지만 공개 API는 Tunnel 승인 대기입니다. 전체 서비스 배포 완료 상태가 아닙니다.
 
 ## 현재 구현 범위
 

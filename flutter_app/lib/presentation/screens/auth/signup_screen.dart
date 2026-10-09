@@ -45,7 +45,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('가입 완료! 이메일을 확인해주세요.'),
+            content: Text('가입이 완료되었습니다. 로그인해주세요.'),
           ),
         );
         context.go('/login');

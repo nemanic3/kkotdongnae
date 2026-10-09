@@ -19,7 +19,7 @@ class LocationNotifier extends StateNotifier<AsyncValue<LocationModel>> {
   }
 
   Future<void> _init() async {
-    await refreshLocation();
+    state = AsyncValue.data(LocationService.getDefaultLocation());
   }
 
   Future<void> refreshLocation() async {

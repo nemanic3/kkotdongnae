@@ -45,6 +45,8 @@ class NearbyShopsNotifier
           'phone': data['phone'] ?? '',
           'description': data['description'] ?? '',
           'is_verified': data['is_verified'] ?? false,
+          'average_rating': data['average_rating'] ?? 0,
+          'review_count': data['review_count'] ?? 0,
         });
       } catch (_) {
         return FlowerShopModel(
@@ -115,6 +117,8 @@ final shopDetailProvider =
       'phone': match['phone'] ?? '',
       'description': match['description'] ?? '',
       'is_verified': match['is_verified'] ?? false,
+      'average_rating': match['average_rating'] ?? 0,
+      'review_count': match['review_count'] ?? 0,
     });
   } catch (_) {
     return FlowerShopModel(
@@ -157,6 +161,8 @@ final searchResultsProvider = FutureProvider.family<List<FlowerShopModel>, Strin
         'phone': data['phone'] ?? '',
         'description': data['description'] ?? '',
         'is_verified': data['is_verified'] ?? false,
+          'average_rating': data['average_rating'] ?? 0,
+          'review_count': data['review_count'] ?? 0,
       });
     } catch (_) {
       return FlowerShopModel(

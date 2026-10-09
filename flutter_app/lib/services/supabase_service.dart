@@ -13,6 +13,8 @@ FlowerShopModel shopFromApi(Map<String, dynamic> data) => FlowerShopModel(
   longitude: double.parse(data['lng'].toString()),
   phone: data['phone'], description: data['description'],
   isVerified: false,
+  averageRating: (data['average_rating'] as num? ?? 0).toDouble(),
+  reviewCount: data['review_count'] as int? ?? 0,
   distanceMeters: data['distance_km'] == null ? null : (data['distance_km'] as num).toDouble() * 1000,
 );
 ReviewModel reviewFromApi(Map<String, dynamic> data) => ReviewModel(

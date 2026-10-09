@@ -1,3 +1,4 @@
+from django.db.models import Avg
 from rest_framework import serializers
 from .models import (
     Shop,
@@ -12,6 +13,12 @@ from .models import (
 
 
 class ShopSerializer(serializers.ModelSerializer):
+    average_rating = serializers.SerializerMethodField()
+    review_count = serializers.SerializerMethodField()
+    def get_average_rating(self, obj):
+        return obj.reviews.aggregate(value=Avg('rating'))['value'] or 0
+    def get_review_count(self, obj):
+        return obj.reviews.count()
     class Meta:
         model = Shop
         fields = "__all__"

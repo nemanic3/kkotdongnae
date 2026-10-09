@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-import 'package:image_picker/image_picker.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../data/models/review_model.dart';
@@ -35,27 +34,9 @@ class _WriteReviewScreenState extends ConsumerState<WriteReviewScreen> {
   }
 
   Future<void> _pickImages() async {
-    if (_selectedPhotos.length >= AppConstants.maxPhotosPerReview) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('최대 ${AppConstants.maxPhotosPerReview}장까지 추가할 수 있습니다'),
-        ),
-      );
-      return;
-    }
-
-    final picker = ImagePicker();
-    final images = await picker.pickMultiImage();
-
-    if (images.isNotEmpty) {
-      final remainingSlots =
-          AppConstants.maxPhotosPerReview - _selectedPhotos.length;
-      final imagesToAdd = images.take(remainingSlots);
-
-      setState(() {
-        _selectedPhotos.addAll(imagesToAdd.map((img) => img.path));
-      });
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('사진 첨부는 아직 제공하지 않습니다. 텍스트 리뷰를 작성해주세요.')),
+    );
   }
 
   void _removePhoto(int index) {
@@ -76,8 +57,6 @@ class _WriteReviewScreenState extends ConsumerState<WriteReviewScreen> {
     setState(() => _isSubmitting = true);
 
     try {
-      // In a real app, you'd upload photos to Supabase Storage first
-      // and get the URLs, then include them in the review
       final request = CreateReviewRequest(
         shopId: widget.shopId,
         rating: _rating,

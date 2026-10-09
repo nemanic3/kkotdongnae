@@ -58,3 +58,24 @@ launch agent/poller는 로그인 후 Docker 준비를 기다리며 API/DB를 시
 - Flutter 로그인 390×844, 1440×900 화면/입력 검증 2개 테스트 통과. 정적 분석에는 기존 경고/info가 있으며 컴파일 오류 없음.
 - Flutter release 웹 빌드 통과.
 - 실제 도메인, GitHub CI, 재부팅, 실제 위치·외부 지도는 별도 검증 후 기록. 아직 검증 완료라고 보지 않습니다.
+
+## 공개 배포 현황 (2026-10-10)
+
+- Pages 프로젝트 `kkotdongnae` 생성 완료. GitHub 기존 앱 접근 사용, `pages` 브랜치 / `public` 출력으로 자동 배포. 소스 main preview는 비활성화했습니다.
+- `https://kkotdongnae.nemanic.dev` HTTPS 200과 SSL 활성 확인. `release.txt`로 배포 소스 커밋을 확인할 수 있습니다.
+- Pages에 `DJANGO_ORIGIN`과 암호화된 `ORIGIN_PROXY_SECRET` 저장 완료. preview에는 운영 secret을 입력하지 않았습니다.
+- **공개 API는 미연결:** Tunnel 경로 `kkotdongnae-origin.nemanic.dev → http://host.docker.internal:18080`는 입력만 준비했습니다. 컴퓨터 사용 정책상 로컬 API 공개는 실행 시점 승인 대상이므로 제출하지 않았습니다. 기존 `hongikbot-origin.nemanic.dev → http://api:8000` 경로는 그대로 유지했습니다.
+- 원본 DB 사용자/매장/주문은 모두 0건이었습니다. 운영 복사본은 실제 사용자 데이터를 추가하거나 시딩하지 않았습니다. QA는 별도 `kkot_qa` DB·localhost API에 가짜 계정/가상 매장만 사용했습니다. `seed_public_catalog`는 선택적 데모 카탈로그 명령이며 운영에 자동 실행하지 않습니다.
+- 실제 브라우저 QA에서 가입→로그인→매장 상세→즐겨찾기 저장→텍스트 리뷰 저장을 확인했고, HTTP로 저장 결과·토큰 폐기·접근 권한을 확인했습니다. 브라우저 검증으로 발견한 찜 탭의 Mock 데이터, 업로드 성공 오인 안내, 가입 이메일 확인 오인 안내를 수정했습니다.
+- 공개 도메인에서는 데스크톱 1440×900과 모바일 390×844 로그인 화면만 확인했습니다. 공개 도메인의 가입/로그인/DB 저장은 API 미연결 때문에 **검증하지 못했습니다**. 실제 GPS 권한·네이버 지도 화면·유료 외부 API는 검증하지 않았습니다.
+- Mac launch agent 파일 설치/등록 완료: `~/Library/LaunchAgents/dev.nemanic.kkotdongnae.deploy.plist`, 5분 간격. 현재 launchd의 Python 실행은 Desktop의 스크립트 파일 열기 단계에서 대기하고 있어 자동 실행 성공/재부팅 복구는 아직 확인하지 못했습니다. OS 파일 접근 요청이 있다면 운영자가 검토해야 합니다. 권한을 우회하거나 자동 로그인/FileVault 설정을 변경하지 않았습니다.
+- 캡처: `docs/screenshots/live-login-desktop.jpg`, `live-login-mobile.jpg`는 실제 도메인. `qa-*`는 격리 localhost QA. `tunnel-pending.jpg`는 제출되지 않은 경로의 승인 화면으로 로컬에만 보관하며 GitHub에 올리지 않습니다. 실제 개인정보/비밀 값은 포함하지 않았습니다.
+
+## 운영자에게 남은 조치
+
+1. 준비된 Tunnel 공개 경로의 최종 승인. 기존 Tunnel credential을 새로 발급/복사/교체하지 않습니다. 승인 후 꽃동네 origin 접근의 403/프록시 health 200을 확인해야 합니다.
+2. Mac의 launch agent 파일 접근 대기 원인/권한을 확인하고 Docker Desktop 로그인 시 시작을 확인합니다. 등록 상태 확인: `launchctl print gui/$(id -u)/dev.nemanic.kkotdongnae.deploy`.
+3. `python3 scripts/poll-deploy.py` 수동 검사 후 실제 Mac 재부팅/네트워크 복구를 점검합니다. 현재는 재부팅 검증을 주장하지 않습니다.
+4. 공개 도메인에서 가짜 계정으로 인증/사용자별 권한/저장/로그아웃을 종단 간 검증한 뒤 전체 서비스 완료로 판단합니다. 실매장 데이터는 운영자가 등록해야 하며 가상 매장을 실제 상점으로 소개하지 않습니다.
+
+참고: [Pages 고급 Functions](https://developers.cloudflare.com/pages/functions/advanced-mode/), [Pages Git 연동](https://developers.cloudflare.com/pages/configuration/git-integration/), [Tunnel macOS 서비스](https://developers.cloudflare.com/tunnel/features/locally-managed-tunnels/as-a-service/macos/), [Django 5.2 지원](https://docs.djangoproject.com/en/5.2/releases/5.2/).
