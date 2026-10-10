@@ -6,7 +6,7 @@
 
 기술 구성: Flutter/Dart, Riverpod, GoRouter, Dio, Django/DRF/SimpleJWT, PostgreSQL 16, Docker/Gunicorn, Cloudflare Pages/Pages Functions/Tunnel, GitHub Actions. PostGIS 및 실제 AI·결제 연동은 사용하지 않습니다.
 
-서비스: https://kkotdongnae.nemanic.dev (프런트엔드 배포 완료, 공개 API는 Tunnel 승인 대기)
+서비스: https://kkotdongnae.nemanic.dev (HTTPS 프런트엔드·API 연결 완료)
 GitHub: https://github.com/nemanic3/kkotdongnae
 
 운영 조건: 프런트엔드는 Cloudflare Pages에서 제공하며 API/DB는 Mac mini에서 실행됩니다. Mac mini와 Docker, 네트워크 및 Tunnel이 실행 중이어야 데이터 기능을 사용할 수 있습니다. 재부팅 후 로그인과 Docker 시작이 필요할 수 있으며 결제·AI 생성·파일 업로드·실시간 채팅·백그라운드 알림은 제공하지 않습니다.

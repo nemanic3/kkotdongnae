@@ -55,3 +55,5 @@ app.*.map.json
 
 # Internal approval screen stays local
 /docs/screenshots/tunnel-pending.jpg
+
+docs/screenshots/tunnel-routes-local.jpg

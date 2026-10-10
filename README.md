@@ -7,7 +7,7 @@ Flutter UI와 Django REST API로 구성한 위치 기반 꽃집 탐색 프로젝
 - 배포·검증 현황과 복구 방법: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
 - 홈페이지에 복사할 소개: [docs/NEMANIC_INTRO.md](docs/NEMANIC_INTRO.md)
 
-> 프런트엔드 HTTPS 배포는 완료했지만 공개 API는 Tunnel 승인 대기입니다. 전체 서비스 배포 완료 상태가 아닙니다.
+> HTTPS 프런트엔드와 API를 배포했습니다. 공개 주소의 가짜 계정 인증·프로필 저장·로그아웃을 확인했습니다. 운영 매장은 아직 없으며, 매장/찜/리뷰 저장은 별도 QA에서 검증했습니다. 재부팅 복구는 운영자 확인이 필요합니다.
 
 ## 현재 구현 범위
 
